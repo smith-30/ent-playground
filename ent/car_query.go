@@ -13,6 +13,7 @@ import (
 	"github.com/facebook/ent/schema/field"
 	"github.com/smith-30/ent-playground/ent/car"
 	"github.com/smith-30/ent-playground/ent/predicate"
+	"github.com/smith-30/ent-playground/ent/user"
 )
 
 // CarQuery is the builder for querying Car entities.
@@ -23,7 +24,9 @@ type CarQuery struct {
 	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Car
-	withFKs    bool
+	// eager-loading edges.
+	withOwner *UserQuery
+	withFKs   bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -51,6 +54,24 @@ func (cq *CarQuery) Offset(offset int) *CarQuery {
 func (cq *CarQuery) Order(o ...OrderFunc) *CarQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryOwner chains the current query on the owner edge.
+func (cq *CarQuery) QueryOwner() *UserQuery {
+	query := &UserQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(car.Table, car.FieldID, cq.sqlQuery()),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, car.OwnerTable, car.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Car entity in the query. Returns *NotFoundError when no car was found.
@@ -232,6 +253,17 @@ func (cq *CarQuery) Clone() *CarQuery {
 	}
 }
 
+//  WithOwner tells the query-builder to eager-loads the nodes that are connected to
+// the "owner" edge. The optional arguments used to configure the query builder of the edge.
+func (cq *CarQuery) WithOwner(opts ...func(*UserQuery)) *CarQuery {
+	query := &UserQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withOwner = query
+	return cq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -296,10 +328,16 @@ func (cq *CarQuery) prepareQuery(ctx context.Context) error {
 
 func (cq *CarQuery) sqlAll(ctx context.Context) ([]*Car, error) {
 	var (
-		nodes   = []*Car{}
-		withFKs = cq.withFKs
-		_spec   = cq.querySpec()
+		nodes       = []*Car{}
+		withFKs     = cq.withFKs
+		_spec       = cq.querySpec()
+		loadedTypes = [1]bool{
+			cq.withOwner != nil,
+		}
 	)
+	if cq.withOwner != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, car.ForeignKeys...)
 	}
@@ -317,6 +355,7 @@ func (cq *CarQuery) sqlAll(ctx context.Context) ([]*Car, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {
@@ -325,6 +364,32 @@ func (cq *CarQuery) sqlAll(ctx context.Context) ([]*Car, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := cq.withOwner; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Car)
+		for i := range nodes {
+			if fk := nodes[i].user_cars; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_cars" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Owner = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

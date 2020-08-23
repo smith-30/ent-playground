@@ -12,6 +12,7 @@ import (
 	"github.com/facebook/ent/schema/field"
 	"github.com/smith-30/ent-playground/ent/car"
 	"github.com/smith-30/ent-playground/ent/predicate"
+	"github.com/smith-30/ent-playground/ent/user"
 )
 
 // CarUpdate is the builder for updating Car entities.
@@ -40,13 +41,39 @@ func (cu *CarUpdate) SetRegisteredAt(t time.Time) *CarUpdate {
 	return cu
 }
 
+// SetOwnerID sets the owner edge to User by id.
+func (cu *CarUpdate) SetOwnerID(id int) *CarUpdate {
+	cu.mutation.SetOwnerID(id)
+	return cu
+}
+
+// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+func (cu *CarUpdate) SetNillableOwnerID(id *int) *CarUpdate {
+	if id != nil {
+		cu = cu.SetOwnerID(*id)
+	}
+	return cu
+}
+
+// SetOwner sets the owner edge to User.
+func (cu *CarUpdate) SetOwner(u *User) *CarUpdate {
+	return cu.SetOwnerID(u.ID)
+}
+
 // Mutation returns the CarMutation object of the builder.
 func (cu *CarUpdate) Mutation() *CarMutation {
 	return cu.mutation
 }
 
+// ClearOwner clears the owner edge to User.
+func (cu *CarUpdate) ClearOwner() *CarUpdate {
+	cu.mutation.ClearOwner()
+	return cu
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (cu *CarUpdate) Save(ctx context.Context) (int, error) {
+
 	var (
 		err      error
 		affected int
@@ -128,6 +155,41 @@ func (cu *CarUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: car.FieldRegisteredAt,
 		})
 	}
+	if cu.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   car.OwnerTable,
+			Columns: []string{car.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   car.OwnerTable,
+			Columns: []string{car.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{car.Label}
@@ -158,13 +220,39 @@ func (cuo *CarUpdateOne) SetRegisteredAt(t time.Time) *CarUpdateOne {
 	return cuo
 }
 
+// SetOwnerID sets the owner edge to User by id.
+func (cuo *CarUpdateOne) SetOwnerID(id int) *CarUpdateOne {
+	cuo.mutation.SetOwnerID(id)
+	return cuo
+}
+
+// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+func (cuo *CarUpdateOne) SetNillableOwnerID(id *int) *CarUpdateOne {
+	if id != nil {
+		cuo = cuo.SetOwnerID(*id)
+	}
+	return cuo
+}
+
+// SetOwner sets the owner edge to User.
+func (cuo *CarUpdateOne) SetOwner(u *User) *CarUpdateOne {
+	return cuo.SetOwnerID(u.ID)
+}
+
 // Mutation returns the CarMutation object of the builder.
 func (cuo *CarUpdateOne) Mutation() *CarMutation {
 	return cuo.mutation
 }
 
+// ClearOwner clears the owner edge to User.
+func (cuo *CarUpdateOne) ClearOwner() *CarUpdateOne {
+	cuo.mutation.ClearOwner()
+	return cuo
+}
+
 // Save executes the query and returns the updated entity.
 func (cuo *CarUpdateOne) Save(ctx context.Context) (*Car, error) {
+
 	var (
 		err  error
 		node *Car
@@ -243,6 +331,41 @@ func (cuo *CarUpdateOne) sqlSave(ctx context.Context) (c *Car, err error) {
 			Value:  value,
 			Column: car.FieldRegisteredAt,
 		})
+	}
+	if cuo.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   car.OwnerTable,
+			Columns: []string{car.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   car.OwnerTable,
+			Columns: []string{car.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	c = &Car{config: cuo.config}
 	_spec.Assign = c.assignValues
