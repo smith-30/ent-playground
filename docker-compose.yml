@@ -1,0 +1,10 @@
+version: "3.3"
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: ent_sample
+      MYSQL_ROOT_PASSWORD: ent
+    ports:
+      - "13307:3306"
