@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"github.com/smith-30/ent-playground/ent/group"
 	"github.com/smith-30/ent-playground/ent/schema"
 	"github.com/smith-30/ent-playground/ent/user"
 )
@@ -11,6 +12,12 @@ import (
 // code (default values, validators or hooks) and stitches it
 // to their package variables.
 func init() {
+	groupFields := schema.Group{}.Fields()
+	_ = groupFields
+	// groupDescName is the schema descriptor for name field.
+	groupDescName := groupFields[0].Descriptor()
+	// group.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	group.NameValidator = groupDescName.Validators[0].(func(string) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescAge is the schema descriptor for age field.
