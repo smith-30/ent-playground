@@ -31,6 +31,8 @@ func main() {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
+	fmt.Println()
+
 	fa := FakeData{}
 
 	if err := faker.FakeData(&fa); err != nil {
@@ -38,12 +40,15 @@ func main() {
 		return
 	}
 
+	fmt.Println()
+
 	u, err := CreateUser(ctx, client, fa.Name)
 	if err != nil {
 		fmt.Printf("%#v\n", err)
 		return
 	}
 	fmt.Printf("%#v\n", u)
+	fmt.Println()
 
 	fu, err := QueryUser(ctx, client, fa.Name)
 	if err != nil {
@@ -51,6 +56,7 @@ func main() {
 		return
 	}
 	fmt.Printf("%#v\n", fu)
+	fmt.Println()
 
 	fuu, err := CreateCars(ctx, client, fa.Name)
 	if err != nil {
@@ -58,6 +64,7 @@ func main() {
 		return
 	}
 	fmt.Printf("%#v\n", fuu)
+	fmt.Println()
 
 	if err := QueryCars(ctx, fuu); err != nil {
 		fmt.Printf("%#v\n", err)
@@ -100,7 +107,7 @@ func CreateCars(ctx context.Context, client *ent.Client, userName string) (*ent.
 		SetRegisteredAt(time.Now()).
 		Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed creating car: %v", err)
+		return nil, fmt.Errorf("Tesla failed creating car: %v", err)
 	}
 
 	// creating new car with model "Ford".
@@ -110,7 +117,7 @@ func CreateCars(ctx context.Context, client *ent.Client, userName string) (*ent.
 		SetRegisteredAt(time.Now()).
 		Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed creating car: %v", err)
+		return nil, fmt.Errorf("Ford failed creating car: %v", err)
 	}
 	log.Println("car was created: ", ford)
 

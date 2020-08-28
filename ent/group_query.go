@@ -11,6 +11,7 @@ import (
 	"github.com/facebook/ent/dialect/sql"
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/group"
 	"github.com/smith-30/ent-playground/ent/predicate"
 )
@@ -74,8 +75,8 @@ func (gq *GroupQuery) FirstX(ctx context.Context) *Group {
 }
 
 // FirstID returns the first Group id in the query. Returns *NotFoundError when no id was found.
-func (gq *GroupQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (gq *GroupQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = gq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -87,7 +88,7 @@ func (gq *GroupQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (gq *GroupQuery) FirstXID(ctx context.Context) int {
+func (gq *GroupQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := gq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -121,8 +122,8 @@ func (gq *GroupQuery) OnlyX(ctx context.Context) *Group {
 }
 
 // OnlyID returns the only Group id in the query, returns an error if not exactly one id was returned.
-func (gq *GroupQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (gq *GroupQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = gq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -138,7 +139,7 @@ func (gq *GroupQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (gq *GroupQuery) OnlyIDX(ctx context.Context) int {
+func (gq *GroupQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := gq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -164,8 +165,8 @@ func (gq *GroupQuery) AllX(ctx context.Context) []*Group {
 }
 
 // IDs executes the query and returns a list of Group ids.
-func (gq *GroupQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (gq *GroupQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := gq.Select(group.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +174,7 @@ func (gq *GroupQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (gq *GroupQuery) IDsX(ctx context.Context) []int {
+func (gq *GroupQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := gq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -339,7 +340,7 @@ func (gq *GroupQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   group.Table,
 			Columns: group.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: group.FieldID,
 			},
 		},

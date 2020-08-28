@@ -4,6 +4,7 @@ import (
 	"github.com/facebook/ent"
 	"github.com/facebook/ent/schema/edge"
 	"github.com/facebook/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // Car holds the schema definition for the Car entity.
@@ -14,6 +15,9 @@ type Car struct {
 // Fields of the Car.
 func (Car) Fields() []ent.Field {
 	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).
+			Default(uuid.New).
+			Immutable(),
 		field.String("model"),
 		field.Time("registered_at"),
 	}

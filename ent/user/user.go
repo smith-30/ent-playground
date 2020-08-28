@@ -2,6 +2,10 @@
 
 package user
 
+import (
+	"github.com/google/uuid"
+)
+
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
@@ -38,4 +42,6 @@ var (
 	AgeValidator func(int) error
 	// DefaultName holds the default value on creation for the name field.
 	DefaultName string
+	// DefaultID holds the default value on creation for the id field.
+	DefaultID func() uuid.UUID
 )

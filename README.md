@@ -1,2 +1,3 @@
 - parseTime=true で接続しないと time.Time の Scan に失敗する @mysql
   - https://budougumi0617.github.io/2019/03/31/go_db_unsupported_scan_storing_driver_value_type_uint8_into_type_time_time/
+  - 

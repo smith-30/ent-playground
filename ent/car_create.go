@@ -10,6 +10,7 @@ import (
 
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/car"
 	"github.com/smith-30/ent-playground/ent/user"
 )
@@ -33,14 +34,20 @@ func (cc *CarCreate) SetRegisteredAt(t time.Time) *CarCreate {
 	return cc
 }
 
+// SetID sets the id field.
+func (cc *CarCreate) SetID(u uuid.UUID) *CarCreate {
+	cc.mutation.SetID(u)
+	return cc
+}
+
 // SetOwnerID sets the owner edge to User by id.
-func (cc *CarCreate) SetOwnerID(id int) *CarCreate {
+func (cc *CarCreate) SetOwnerID(id uuid.UUID) *CarCreate {
 	cc.mutation.SetOwnerID(id)
 	return cc
 }
 
 // SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (cc *CarCreate) SetNillableOwnerID(id *int) *CarCreate {
+func (cc *CarCreate) SetNillableOwnerID(id *uuid.UUID) *CarCreate {
 	if id != nil {
 		cc = cc.SetOwnerID(*id)
 	}
@@ -105,6 +112,10 @@ func (cc *CarCreate) preSave() error {
 	if _, ok := cc.mutation.RegisteredAt(); !ok {
 		return &ValidationError{Name: "registered_at", err: errors.New("ent: missing required field \"registered_at\"")}
 	}
+	if _, ok := cc.mutation.ID(); !ok {
+		v := car.DefaultID()
+		cc.mutation.SetID(v)
+	}
 	return nil
 }
 
@@ -116,8 +127,6 @@ func (cc *CarCreate) sqlSave(ctx context.Context) (*Car, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	c.ID = int(id)
 	return c, nil
 }
 
@@ -127,11 +136,15 @@ func (cc *CarCreate) createSpec() (*Car, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: car.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: car.FieldID,
 			},
 		}
 	)
+	if id, ok := cc.mutation.ID(); ok {
+		c.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := cc.mutation.Model(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -157,7 +170,7 @@ func (cc *CarCreate) createSpec() (*Car, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUUID,
 					Column: user.FieldID,
 				},
 			},
@@ -209,8 +222,6 @@ func (ccb *CarCreateBulk) Save(ctx context.Context) ([]*Car, error) {
 				if err != nil {
 					return nil, err
 				}
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {

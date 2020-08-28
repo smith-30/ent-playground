@@ -9,6 +9,7 @@ import (
 
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/group"
 )
 
@@ -22,6 +23,12 @@ type GroupCreate struct {
 // SetName sets the name field.
 func (gc *GroupCreate) SetName(s string) *GroupCreate {
 	gc.mutation.SetName(s)
+	return gc
+}
+
+// SetID sets the id field.
+func (gc *GroupCreate) SetID(u uuid.UUID) *GroupCreate {
+	gc.mutation.SetID(u)
 	return gc
 }
 
@@ -80,6 +87,10 @@ func (gc *GroupCreate) preSave() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
+	if _, ok := gc.mutation.ID(); !ok {
+		v := group.DefaultID()
+		gc.mutation.SetID(v)
+	}
 	return nil
 }
 
@@ -91,8 +102,6 @@ func (gc *GroupCreate) sqlSave(ctx context.Context) (*Group, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	gr.ID = int(id)
 	return gr, nil
 }
 
@@ -102,11 +111,15 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: group.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: group.FieldID,
 			},
 		}
 	)
+	if id, ok := gc.mutation.ID(); ok {
+		gr.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := gc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -157,8 +170,6 @@ func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
 				if err != nil {
 					return nil, err
 				}
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/facebook/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/group"
 )
 
@@ -14,7 +15,7 @@ import (
 type Group struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 }
@@ -22,7 +23,7 @@ type Group struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Group) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},  // id
+		&uuid.UUID{},      // id
 		&sql.NullString{}, // name
 	}
 }
@@ -33,11 +34,11 @@ func (gr *Group) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(group.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	value, ok := values[0].(*sql.NullInt64)
-	if !ok {
-		return fmt.Errorf("unexpected type %T for field id", value)
+	if value, ok := values[0].(*uuid.UUID); !ok {
+		return fmt.Errorf("unexpected type %T for field id", values[0])
+	} else if value != nil {
+		gr.ID = *value
 	}
-	gr.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field name", values[0])

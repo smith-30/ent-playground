@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/facebook/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/car"
 	"github.com/smith-30/ent-playground/ent/user"
 )
@@ -16,7 +17,7 @@ import (
 type Car struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Model holds the value of the "model" field.
 	Model string `json:"model,omitempty"`
 	// RegisteredAt holds the value of the "registered_at" field.
@@ -24,7 +25,7 @@ type Car struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CarQuery when eager-loading is set.
 	Edges     CarEdges `json:"edges"`
-	user_cars *int
+	user_cars *uuid.UUID
 }
 
 // CarEdges holds the relations/edges for other nodes in the graph.
@@ -53,7 +54,7 @@ func (e CarEdges) OwnerOrErr() (*User, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Car) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},  // id
+		&uuid.UUID{},      // id
 		&sql.NullString{}, // model
 		&sql.NullTime{},   // registered_at
 	}
@@ -62,7 +63,7 @@ func (*Car) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Car) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // user_cars
+		&uuid.UUID{}, // user_cars
 	}
 }
 
@@ -72,11 +73,11 @@ func (c *Car) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(car.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	value, ok := values[0].(*sql.NullInt64)
-	if !ok {
-		return fmt.Errorf("unexpected type %T for field id", value)
+	if value, ok := values[0].(*uuid.UUID); !ok {
+		return fmt.Errorf("unexpected type %T for field id", values[0])
+	} else if value != nil {
+		c.ID = *value
 	}
-	c.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field model", values[0])
@@ -90,11 +91,10 @@ func (c *Car) assignValues(values ...interface{}) error {
 	}
 	values = values[2:]
 	if len(values) == len(car.ForeignKeys) {
-		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field user_cars", value)
-		} else if value.Valid {
-			c.user_cars = new(int)
-			*c.user_cars = int(value.Int64)
+		if value, ok := values[0].(*uuid.UUID); !ok {
+			return fmt.Errorf("unexpected type %T for field user_cars", values[0])
+		} else if value != nil {
+			c.user_cars = value
 		}
 	}
 	return nil

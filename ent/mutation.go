@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/car"
 	"github.com/smith-30/ent-playground/ent/group"
 	"github.com/smith-30/ent-playground/ent/user"
@@ -35,11 +36,11 @@ type CarMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	model         *string
 	registered_at *time.Time
 	clearedFields map[string]struct{}
-	owner         *int
+	owner         *uuid.UUID
 	clearedowner  bool
 	done          bool
 	oldValue      func(context.Context) (*Car, error)
@@ -65,7 +66,7 @@ func newCarMutation(c config, op Op, opts ...carOption) *CarMutation {
 }
 
 // withCarID sets the id field of the mutation.
-func withCarID(id int) carOption {
+func withCarID(id uuid.UUID) carOption {
 	return func(m *CarMutation) {
 		var (
 			err   error
@@ -115,9 +116,15 @@ func (m CarMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that, this
+// operation is accepted only on Car creation.
+func (m *CarMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the id value in the mutation. Note that, the id
 // is available only if it was provided to the builder.
-func (m *CarMutation) ID() (id int, exists bool) {
+func (m *CarMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -199,7 +206,7 @@ func (m *CarMutation) ResetRegisteredAt() {
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (m *CarMutation) SetOwnerID(id int) {
+func (m *CarMutation) SetOwnerID(id uuid.UUID) {
 	m.owner = &id
 }
 
@@ -214,7 +221,7 @@ func (m *CarMutation) OwnerCleared() bool {
 }
 
 // OwnerID returns the owner id in the mutation.
-func (m *CarMutation) OwnerID() (id int, exists bool) {
+func (m *CarMutation) OwnerID() (id uuid.UUID, exists bool) {
 	if m.owner != nil {
 		return *m.owner, true
 	}
@@ -224,7 +231,7 @@ func (m *CarMutation) OwnerID() (id int, exists bool) {
 // OwnerIDs returns the owner ids in the mutation.
 // Note that ids always returns len(ids) <= 1 for unique edges, and you should use
 // OwnerID instead. It exists only for internal usage by the builders.
-func (m *CarMutation) OwnerIDs() (ids []int) {
+func (m *CarMutation) OwnerIDs() (ids []uuid.UUID) {
 	if id := m.owner; id != nil {
 		ids = append(ids, *id)
 	}
@@ -452,7 +459,7 @@ type GroupMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	name          *string
 	clearedFields map[string]struct{}
 	done          bool
@@ -479,7 +486,7 @@ func newGroupMutation(c config, op Op, opts ...groupOption) *GroupMutation {
 }
 
 // withGroupID sets the id field of the mutation.
-func withGroupID(id int) groupOption {
+func withGroupID(id uuid.UUID) groupOption {
 	return func(m *GroupMutation) {
 		var (
 			err   error
@@ -529,9 +536,15 @@ func (m GroupMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that, this
+// operation is accepted only on Group creation.
+func (m *GroupMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the id value in the mutation. Note that, the id
 // is available only if it was provided to the builder.
-func (m *GroupMutation) ID() (id int, exists bool) {
+func (m *GroupMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -745,13 +758,13 @@ type UserMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	age           *int
 	addage        *int
 	name          *string
 	clearedFields map[string]struct{}
-	cars          map[int]struct{}
-	removedcars   map[int]struct{}
+	cars          map[uuid.UUID]struct{}
+	removedcars   map[uuid.UUID]struct{}
 	done          bool
 	oldValue      func(context.Context) (*User, error)
 }
@@ -776,7 +789,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the id field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id uuid.UUID) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -826,9 +839,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that, this
+// operation is accepted only on User creation.
+func (m *UserMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the id value in the mutation. Note that, the id
 // is available only if it was provided to the builder.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -930,9 +949,9 @@ func (m *UserMutation) ResetName() {
 }
 
 // AddCarIDs adds the cars edge to Car by ids.
-func (m *UserMutation) AddCarIDs(ids ...int) {
+func (m *UserMutation) AddCarIDs(ids ...uuid.UUID) {
 	if m.cars == nil {
-		m.cars = make(map[int]struct{})
+		m.cars = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.cars[ids[i]] = struct{}{}
@@ -940,9 +959,9 @@ func (m *UserMutation) AddCarIDs(ids ...int) {
 }
 
 // RemoveCarIDs removes the cars edge to Car by ids.
-func (m *UserMutation) RemoveCarIDs(ids ...int) {
+func (m *UserMutation) RemoveCarIDs(ids ...uuid.UUID) {
 	if m.removedcars == nil {
-		m.removedcars = make(map[int]struct{})
+		m.removedcars = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.removedcars[ids[i]] = struct{}{}
@@ -950,7 +969,7 @@ func (m *UserMutation) RemoveCarIDs(ids ...int) {
 }
 
 // RemovedCars returns the removed ids of cars.
-func (m *UserMutation) RemovedCarsIDs() (ids []int) {
+func (m *UserMutation) RemovedCarsIDs() (ids []uuid.UUID) {
 	for id := range m.removedcars {
 		ids = append(ids, id)
 	}
@@ -958,7 +977,7 @@ func (m *UserMutation) RemovedCarsIDs() (ids []int) {
 }
 
 // CarsIDs returns the cars ids in the mutation.
-func (m *UserMutation) CarsIDs() (ids []int) {
+func (m *UserMutation) CarsIDs() (ids []uuid.UUID) {
 	for id := range m.cars {
 		ids = append(ids, id)
 	}

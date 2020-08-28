@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/facebook/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/user"
 )
 
@@ -14,7 +15,7 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Age holds the value of the "age" field.
 	Age int `json:"age,omitempty"`
 	// Name holds the value of the "name" field.
@@ -45,7 +46,7 @@ func (e UserEdges) CarsOrErr() ([]*Car, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},  // id
+		&uuid.UUID{},      // id
 		&sql.NullInt64{},  // age
 		&sql.NullString{}, // name
 	}
@@ -57,11 +58,11 @@ func (u *User) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(user.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	value, ok := values[0].(*sql.NullInt64)
-	if !ok {
-		return fmt.Errorf("unexpected type %T for field id", value)
+	if value, ok := values[0].(*uuid.UUID); !ok {
+		return fmt.Errorf("unexpected type %T for field id", values[0])
+	} else if value != nil {
+		u.ID = *value
 	}
-	u.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullInt64); !ok {
 		return fmt.Errorf("unexpected type %T for field age", values[0])

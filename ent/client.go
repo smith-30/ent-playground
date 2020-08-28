@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/migrate"
 
 	"github.com/smith-30/ent-playground/ent/car"
@@ -171,7 +172,7 @@ func (c *CarClient) UpdateOne(ca *Car) *CarUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *CarClient) UpdateOneID(id int) *CarUpdateOne {
+func (c *CarClient) UpdateOneID(id uuid.UUID) *CarUpdateOne {
 	mutation := newCarMutation(c.config, OpUpdateOne, withCarID(id))
 	return &CarUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -188,7 +189,7 @@ func (c *CarClient) DeleteOne(ca *Car) *CarDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *CarClient) DeleteOneID(id int) *CarDeleteOne {
+func (c *CarClient) DeleteOneID(id uuid.UUID) *CarDeleteOne {
 	builder := c.Delete().Where(car.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -201,12 +202,12 @@ func (c *CarClient) Query() *CarQuery {
 }
 
 // Get returns a Car entity by its id.
-func (c *CarClient) Get(ctx context.Context, id int) (*Car, error) {
+func (c *CarClient) Get(ctx context.Context, id uuid.UUID) (*Car, error) {
 	return c.Query().Where(car.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *CarClient) GetX(ctx context.Context, id int) *Car {
+func (c *CarClient) GetX(ctx context.Context, id uuid.UUID) *Car {
 	ca, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -275,7 +276,7 @@ func (c *GroupClient) UpdateOne(gr *Group) *GroupUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *GroupClient) UpdateOneID(id int) *GroupUpdateOne {
+func (c *GroupClient) UpdateOneID(id uuid.UUID) *GroupUpdateOne {
 	mutation := newGroupMutation(c.config, OpUpdateOne, withGroupID(id))
 	return &GroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -292,7 +293,7 @@ func (c *GroupClient) DeleteOne(gr *Group) *GroupDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *GroupClient) DeleteOneID(id int) *GroupDeleteOne {
+func (c *GroupClient) DeleteOneID(id uuid.UUID) *GroupDeleteOne {
 	builder := c.Delete().Where(group.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -305,12 +306,12 @@ func (c *GroupClient) Query() *GroupQuery {
 }
 
 // Get returns a Group entity by its id.
-func (c *GroupClient) Get(ctx context.Context, id int) (*Group, error) {
+func (c *GroupClient) Get(ctx context.Context, id uuid.UUID) (*Group, error) {
 	return c.Query().Where(group.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *GroupClient) GetX(ctx context.Context, id int) *Group {
+func (c *GroupClient) GetX(ctx context.Context, id uuid.UUID) *Group {
 	gr, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -363,7 +364,7 @@ func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id uuid.UUID) *UserUpdateOne {
 	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -380,7 +381,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id uuid.UUID) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -393,12 +394,12 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id uuid.UUID) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id int) *User {
+func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	u, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

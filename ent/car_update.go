@@ -10,6 +10,7 @@ import (
 	"github.com/facebook/ent/dialect/sql"
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/smith-30/ent-playground/ent/car"
 	"github.com/smith-30/ent-playground/ent/predicate"
 	"github.com/smith-30/ent-playground/ent/user"
@@ -42,13 +43,13 @@ func (cu *CarUpdate) SetRegisteredAt(t time.Time) *CarUpdate {
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (cu *CarUpdate) SetOwnerID(id int) *CarUpdate {
+func (cu *CarUpdate) SetOwnerID(id uuid.UUID) *CarUpdate {
 	cu.mutation.SetOwnerID(id)
 	return cu
 }
 
 // SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (cu *CarUpdate) SetNillableOwnerID(id *int) *CarUpdate {
+func (cu *CarUpdate) SetNillableOwnerID(id *uuid.UUID) *CarUpdate {
 	if id != nil {
 		cu = cu.SetOwnerID(*id)
 	}
@@ -129,7 +130,7 @@ func (cu *CarUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   car.Table,
 			Columns: car.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: car.FieldID,
 			},
 		},
@@ -164,7 +165,7 @@ func (cu *CarUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUUID,
 					Column: user.FieldID,
 				},
 			},
@@ -180,7 +181,7 @@ func (cu *CarUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUUID,
 					Column: user.FieldID,
 				},
 			},
@@ -221,13 +222,13 @@ func (cuo *CarUpdateOne) SetRegisteredAt(t time.Time) *CarUpdateOne {
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (cuo *CarUpdateOne) SetOwnerID(id int) *CarUpdateOne {
+func (cuo *CarUpdateOne) SetOwnerID(id uuid.UUID) *CarUpdateOne {
 	cuo.mutation.SetOwnerID(id)
 	return cuo
 }
 
 // SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (cuo *CarUpdateOne) SetNillableOwnerID(id *int) *CarUpdateOne {
+func (cuo *CarUpdateOne) SetNillableOwnerID(id *uuid.UUID) *CarUpdateOne {
 	if id != nil {
 		cuo = cuo.SetOwnerID(*id)
 	}
@@ -308,7 +309,7 @@ func (cuo *CarUpdateOne) sqlSave(ctx context.Context) (c *Car, err error) {
 			Table:   car.Table,
 			Columns: car.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: car.FieldID,
 			},
 		},
@@ -341,7 +342,7 @@ func (cuo *CarUpdateOne) sqlSave(ctx context.Context) (c *Car, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUUID,
 					Column: user.FieldID,
 				},
 			},
@@ -357,7 +358,7 @@ func (cuo *CarUpdateOne) sqlSave(ctx context.Context) (c *Car, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUUID,
 					Column: user.FieldID,
 				},
 			},
